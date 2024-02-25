@@ -1,49 +1,46 @@
 #include <iostream>
-#include <queue>
 #include <fstream>
-#include "CircularBuffer.hpp"
+#include <thread>
+#include <chrono>
+#include <queue>
 
-#define MB_INT 1048576/sizeof(int)
-#define MB_INT256 256 * 1048576/sizeof(int)
+using namespace std::literals::chrono_literals;
 
-struct CircularBufferInfo
-{
-	int size_info_buffer = 0;
-	CircularBuffer<int> * CircularBufferEnd = nullptr;
-
-}Info_Main;
 
 int main()
 {
-	std::queue<CircularBufferInfo> QueueCircular;
-	int couter_QueueCircular = 0;
-	CircularBuffer<int> *CircularBufferPtr = nullptr;
+	int speed;
+	double period;
+	char c;
 
-	int data;
-	int sizeCircular = 0;
+	////////////////////////////
+	std::chrono::duration delta =std::chrono::duration<double>();
 
-	////////////////////////////////////
 	std::fstream current_file;
-	current_file.open("300_MB", std::ios::binary | std::ios::in);
 
-	while( couter_QueueCircular != 256 && !current_file.eof())///!!!
+	current_file.open("MAIN_BINARY", std::ios::binary | std::ios::in);
+	if(!current_file)
+		exit(1);
+
+	std::queue<char> data_file;
+
+	std::cout << "Please specify the speed (bit/s)" << std::endl;
+	std::cin >> speed;
+
+	period = 1.0 / speed;
+
+	delta =std::chrono::duration<double>(period);
+
+	while( current_file.read((char*) &c, sizeof(char)).good())//запиши в переменную c 1 байт
 	{
-		//флаг опущен
-		CircularBufferPtr = new CircularBuffer<int>(MB_INT256);//
-		while( !CircularBufferPtr->isFilled())
-		{
-			current_file.read((char*) &data, sizeof(int));
-			if(current_file.eof())
-							break;
-			CircularBufferPtr->write(data);
-		}
-
-		Info_Main.size_info_buffer = CircularBufferPtr->getSizeFilled();
-		Info_Main.CircularBufferEnd = CircularBufferPtr->getObjectCircular();
-		QueueCircular.push(Info_Main);
-		//флаг поднят
-		++couter_QueueCircular;
-
+		auto start = std::chrono::high_resolution_clock::now();
+		data_file.push(c);
+		auto end = std::chrono::high_resolution_clock::now();
+		std::cout << data_file.size() << "  " << (end-start).count() << std::endl;
+		std::this_thread::sleep_for(delta - ( end - start));
 	}
+
+	//
+
 
 }
