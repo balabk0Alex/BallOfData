@@ -20,7 +20,7 @@ struct CircularBufferInfo
 class FileThread
 {
 public:
-	FileThread(std::string InNameFile, std::string OutNameFile, std::thread &th, std::thread &th2);
+	FileThread(std::string InNameFile, std::string OutNameFile);
 
 private:
 
@@ -37,11 +37,13 @@ private:
 
 	int period;
 	int limit_data;
+	int counterCircle;
+	int counter_QueueCircular;
 
 	bool end;
 
-	std::thread & actually_thread;
-	std::thread & output_thread;
+	std::thread actually_thread;
+	std::thread output_thread;
 
 };
 

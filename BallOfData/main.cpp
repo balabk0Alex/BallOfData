@@ -6,19 +6,13 @@
 
 int main()
 {
+	std::string output_file;
 
-	std::thread thread1, thread2;
+	std::cout << "Please enter the file to be read" << std::endl;
+	std::cin >> output_file;std::cout << std::endl;
 
-
-	std::chrono::time_point start = std::chrono::high_resolution_clock::now();
-
-	FileThread file1("300_MB","OutputFile",thread1,thread2);
-
-	auto end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> duration = end - start;
-
-
-
-	std::cout << "TIME: " << duration.count() << std::endl;
+	FileThread file1(output_file,"OutputFile");
 	std::cout << "complete!!!";
+
+	return 0;
 }
