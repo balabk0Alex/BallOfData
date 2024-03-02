@@ -44,7 +44,7 @@ private:
 
 	std::queue<CircularBufferInfo> QueueCircular;//очередь записи  
 
-	int period;  
+	int period;  //переменная хранит хранит скорость записи X МБ/с
 	int limit_data;//переменная хранит колличество считываемой информации ;  
 	int counter_QueueCircular;//переменная хранит колличество заполненых ячеек в очереди  
 
