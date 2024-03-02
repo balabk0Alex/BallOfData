@@ -18,3 +18,35 @@
  - Другая нить приложения ожидает сообщений из очереди сообщений и по получении сообщения дописывает данные в файл.  
  - Очередь сообщений имеет конечную длину 256 и при достижении этой длины выдает ошибку.  
  - При достижении заданного пользователем объема записанных данных приложение завершает свою работу.
+**Основная идея класса FileThread**
+```
+class FileThread
+{
+public:
+	FileThread(std::string InNameFile, std::string OutNameFile);
+
+private:
+
+	void main_process();
+	void outputInFile();
+	void get_inform();
+
+	std::fstream current_file;
+	std::fstream out_file;
+
+	CircularBufferInfo Info_Main;
+	std::queue<CircularBufferInfo> QueueCircular;
+	CircularBuffer<int> *CircularBufferPtr;
+
+	int period;
+	int limit_data;
+	int counterCircle;
+	int counter_QueueCircular;
+
+	bool end;
+
+	std::thread actually_thread;
+	std::thread output_thread;
+
+};
+```` 
