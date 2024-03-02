@@ -19,34 +19,41 @@
  - Очередь сообщений имеет конечную длину 256 и при достижении этой длины выдает ошибку.  
  - При достижении заданного пользователем объема записанных данных приложение завершает свою работу.
 **Основная идея класса FileThread**
+Вход:  
+1. Название открываемого бинарного файла,из которого считывается информация.
+2. Название файла куда будет записываться информация.
+Выход:
+Бинарный файл с копией информации  
 ```
 class FileThread
 {
 public:
-	FileThread(std::string InNameFile, std::string OutNameFile);
-
+	FileThread(std::string InNameFile, std::string OutNameFile);//конструктор
+        //1.Инициализирует все счётчики, флаги начальными значениями  
+        //2.Открывает файл исходный файл (проверка) , открывает файл записи (проверка)
+        //3.Если проверка прошла успешно, то в конструкторе запускаюся 2 потока
+        //4.Главный поток в конструкторе будет ожидать заверщения конца работы 2ух доп потоков  
 private:
 
-	void main_process();
-	void outputInFile();
-	void get_inform();
+	void main_process();//функция первого потока
+        void get_inform();//функция соберает данные для записи скорость записи/размер записи вызывается первыйм потоком   
+	void outputInFile();//функция второго потока  
 
-	std::fstream current_file;
-	std::fstream out_file;
+	std::fstream current_file;//объект исходного файла  
+	std::fstream out_file;//объект файла записи  
 
-	CircularBufferInfo Info_Main;
-	std::queue<CircularBufferInfo> QueueCircular;
-	CircularBuffer<int> *CircularBufferPtr;
+	std::queue<CircularBufferInfo> QueueCircular;//очередь записи  
 
-	int period;
-	int limit_data;
-	int counterCircle;
-	int counter_QueueCircular;
+	int period;  
+	int limit_data;//переменная хранит колличество считываемой информации ;  
+	int counter_QueueCircular;//переменная хранит колличество заполненых ячеек в очереди  
 
-	bool end;
-
-	std::thread actually_thread;
-	std::thread output_thread;
+	bool end;//флаг  
+                 //true - при запуске конструктора  
+                 //false - при завершении записи  
+                 //контролирует цикл в втором потоке записи  
+	std::thread actually_thread; //поток1 - ЧТЕНИЕ  
+	std::thread output_thread;   //поток2 - ЗАПИСЬ  
 
 };
 ```` 
