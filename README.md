@@ -1,10 +1,5 @@
 # English  
 
-		std::cout << "Filled cells: \n" << counter_QueueCircular <<//отчёт
-				     "Speed(1B/nS)" << speed;
-	}
-}
-````
 📁 BallOfData  
 ├── 📁 BallOfData  // Main project file  
 │   ├── 📄 FileThread.cpp // Implementation of the FileThread class      
@@ -14,9 +9,8 @@
 └──  📁 DataStructure      
 │       └── 📄 CircularBuffer.hpp // Circular buffer definition and implementation   
 
-Project Assignment
-
-General Description:
+***Project Assignment***
+**General Description:**
 
     Develop a multithreaded application in a programming language capable of asynchronously writing data to a file.
     The application should have two threads of execution: one for generating data and sending it to a message queue, and another for receiving messages from the queue and writing data to a file.
@@ -27,7 +21,7 @@ General Description:
         The message queue has a finite length of 256, and upon reaching this length, it issues an error.
         Upon reaching the user-defined volume of written data, the application terminates.
 
-Main Idea of the FileThread Class
+**Main Idea of the FileThread Class**
 Input:
 
     Name of the binary file from which information is read.
@@ -35,9 +29,7 @@ Input:
 
 Output:
 A binary file with a copy of the information.
-
-cpp
-
+````
 class FileThread
 {
 public:
@@ -69,3 +61,6 @@ private:
     std::thread output_thread;   // Thread 2 - WRITE  
 
 };
+````
+
+
