@@ -1,7 +1,7 @@
 #include "FileThread.hpp"
 
 //constructor , assign value to variables and run threads
-FileThread::FileThread(std::string InNameFile, std::string OutNameFile):CircularBufferPtr(nullptr),end(true),counterCircle(0),counter_QueueCircular(0)
+FileThread::FileThread(std::string InNameFile, std::string OutNameFile):end(true),counter_QueueCircular(0)
 {
 	current_file.open( InNameFile, std::ios::binary | std::ios::in);//open files
 	out_file.open(OutNameFile, std::ios::binary | std::ios::out);
@@ -29,7 +29,7 @@ void FileThread::get_inform()
 	std::cout << "Please, specify the recoding speed ( MB/s): "; std::cin >> speed;///!!!
 	std::cout << std::endl << "Please, specify the size of recording data (MB) :"; std::cin >> limit_data;///!
 
-	period = 1.0 / (speed * MB_INT ) * GIGA;
+	period = (1.0 / (speed * MB_INT )) * GIGA;
 	limit_data *= MB_INT; //number execute cycle!!!
 }
 
@@ -37,9 +37,13 @@ void FileThread::get_inform()
 //THREAD1
 void FileThread::main_process()
 {
-	std::chrono::time_point starttime = std::chrono::high_resolution_clock::now();
-	std::chrono::time_point endtime = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point<std::chrono::high_resolution_clock> starttime;
+	std::chrono::time_point<std::chrono::high_resolution_clock> endtime;
+
 	std::chrono::duration<float> duration;//ОПТИМИЗИРОВАТЬ
+	CircularBufferInfo Info_Main;
+	CircularBuffer<int> *CircularBufferPtr = nullptr;
+	int counterCircle = 0;
 
 
 	get_inform();//input data
@@ -68,7 +72,7 @@ void FileThread::main_process()
 				endtime = std::chrono::high_resolution_clock::now();
 				duration = endtime - starttime;
 				if( duration.count() * GIGA < period)
-				std::this_thread::sleep_for(std::chrono::nanoseconds(period));
+				std::this_thread::sleep_for(std::chrono::nanoseconds( (int)duration.count() * GIGA - period ));
 				counterCircle++;
 			}
 
@@ -86,12 +90,25 @@ void FileThread::outputInFile()
 {
 	int data;
 
+	std::chrono::time_point<std::chrono::high_resolution_clock> starttime;
+	std::chrono::time_point<std::chrono::high_resolution_clock> endtime;
+	std::chrono::duration<float> duration;
+
+	double speed;
+
 	while(end || QueueCircular.size())
 	{
 		while( QueueCircular.size())
 		{
+			starttime = std::chrono::high_resolution_clock::now();
+
 			while(QueueCircular.front().CircularBufferEnd->read(data))
 			out_file.write((char *)&data, sizeof(int));
+
+			endtime = std::chrono::high_resolution_clock::now();
+			duration = endtime - starttime;
+			speed = (duration.count() * GIGA) / (QueueCircular.front().CircularBufferEnd->getSizeFilled() * sizeof(int));
+
 			QueueCircular.pop();//DELETE!!!!
 		}
 

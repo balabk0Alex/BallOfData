@@ -31,13 +31,10 @@ private:
 	std::fstream current_file;
 	std::fstream out_file;
 
-	CircularBufferInfo Info_Main;
 	std::queue<CircularBufferInfo> QueueCircular;
-	CircularBuffer<int> *CircularBufferPtr;
 
 	int period;
 	int limit_data;
-	int counterCircle;
 	int counter_QueueCircular;
 
 	bool end;
