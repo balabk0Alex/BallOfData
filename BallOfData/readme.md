@@ -56,4 +56,98 @@ private:
 	std::thread output_thread;   //поток2 - ЗАПИСЬ  
 
 };
-```` 
+````
+***ПОТОК 1 (заполнение циклического буфера)***   
+````
+	std::chrono::time_point<std::chrono::high_resolution_clock> starttime;//обявляю переменные которое будут отсчитывать время одного присваивания 
+	std::chrono::time_point<std::chrono::high_resolution_clock> endtime;//1 запись в файл = 4 БАЙТА 
+	std::chrono::duration<float> duration;//для численного вычисления времени
+
+	CircularBufferInfo Info_Main;//элемент ячейки циклического буфера
+	CircularBuffer<int> *CircularBufferPtr = nullptr;//указатель на циклический буффер
+	int counterCircle = 0;//счётчик отслеживания предельного колличества записываемых данных
+
+
+	get_inform();//функция которая считывает входные данные
+        //1.limit_data
+        //изначально пользователь вводит колличество считываемых МБ
+        //но в фунцкии это число преобразуется в максимальное колличество выполнения цикла записи
+        //2.period
+        //изначально пользователь вводит скорость записи MB/s
+        //преобразую выражение так, чтобы в period хранилось время записи для size(int) MB
+        //все значения времени в НАНОСЕКУНДАХ
+        
+	int data;//тут хранятся временные данные
+        //!!!нужно избавиться от этой переменной и присваивать напрямую , сильно падает производительность 
+
+	while( counter_QueueCircular != 256 && !current_file.eof() && counterCircle < limit_data)//цикл будет выполняется пока 1.не заполнится очередь
+	{                                                                                                                    //2.файл не достигнет конца 
+		CircularBufferPtr = new CircularBuffer<int>(MB_INT256);//выделение дин памяти                                //3.количество считываемых данных не привысит ограничения 
+
+		if(CircularBufferPtr == nullptr)//проверка на успех выделенной памяти
+		{
+			std::cout << "MEMORY ERROR";
+			break;
+		}
+
+
+
+		while( !CircularBufferPtr->isFilled() && counterCircle < limit_data)//цикл выполняется пока 1. не заполнится циклический буффер
+			{                                                                                 //2. не достигнул лимит записываемых значений                       
+			    starttime = std::chrono::high_resolution_clock::now();//начало отсчёта времени
+                            current_file.read((char*) &data, sizeof(int));//запись в файл
+                            if(current_file.eof())break;//???
+
+                            CircularBufferPtr->write(data);
+                            endtime = std::chrono::high_resolution_clock::now();//конец отсчёта времени
+                            duration = endtime - starttime;//вычесление промежутка времени
+
+
+                            if( duration.count() * GIGA < period)//время сравнивается в наносекундах, если тактовое время на присваиване меньше, чем нужно то ожидаем
+				std::this_thread::sleep_for(std::chrono::nanoseconds(int)duration.count() * GIGA - period )));//если нет возможности записывать с необходимой скоростью то задержки                                                                                                                                //не будет 
+				counterCircle++;//счётчик 
+			}
+
+		Info_Main.size_info_buffer = CircularBufferPtr->getSizeFilled();//запись шаблонной структуры 
+		Info_Main.CircularBufferEnd = CircularBufferPtr->getObjectCircular();
+
+		QueueCircular.push(Info_Main);//добавление структуры 
+		++counter_QueueCircular;//счётчик заполненых ячеек ++
+	}
+
+	end = false;//флаг гарантирующий то, что работа первого потока закончена   
+````
+***ПОТОК 2 (запись в выходной файл )***
+````
+void FileThread::outputInFile()
+{
+	int data;
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> starttime;//аналогично переменные времени 
+	std::chrono::time_point<std::chrono::high_resolution_clock> endtime;
+	std::chrono::duration<float> duration;
+
+	double speed;//хранит время за которое записывается 1Байт в наносекундах 
+
+	while(end || QueueCircular.size())//выполняется пока 
+	{                                 //1.не выполнился основной поток 1
+                                          //2.не пустая очередь
+		while( QueueCircular.size())
+		{
+			starttime = std::chrono::high_resolution_clock::now();//начало отсчёта времени
+
+			while(QueueCircular.front().CircularBufferEnd->read(data))//цикл записи
+			out_file.write((char *)&data, sizeof(int));//запись
+
+			endtime = std::chrono::high_resolution_clock::now();
+			duration = endtime - starttime;
+			speed = (duration.count() * GIGA) / (QueueCircular.front().CircularBufferEnd->getSizeFilled() * sizeof(int));
+			//время записи 1 байта в наносекундах
+			QueueCircular.pop();
+		}
+
+		std::cout << "Filled cells: \n" << counter_QueueCircular <<//отчёт
+				     "Speed(1B/nS)" << speed;
+	}
+}
+````
